@@ -24,9 +24,9 @@ probably explain what each does here
 # Installation
 -- clone 
 -- install dependencies
-		pip install torch torchvision torchaudio
-		pip install numpy pillow matplotlib
-		pip install scikit-learn
+	pip install torch torchvision torchaudio
+	pip install numpy pillow matplotlib
+	pip install scikit-learn
 
 # Usage
 blah blah blah we put stuff here later
