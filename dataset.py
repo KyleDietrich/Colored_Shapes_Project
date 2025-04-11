@@ -24,25 +24,25 @@ COLOR_CLASSES = [
 SHAPE_CLASSES = ["circle", "triangle", "square"]
 IMAGE_SIZE = 32
 
-"""
-Given an (R, G, B) tuple, add a random offset to each channel in 
-the range. Then clip to [0, 255] and return new (R, G, B)
-"""
+
 def random_color_perturbation(base_color, perturb_range = 20):
+    """
+    Given an (R, G, B) tuple, add a random offset to each channel in 
+    the range. Then clip to [0, 255] and return new (R, G, B)
+    """
     offset = np.random.randint(-perturb_range, perturb_range+1, size = 3)
     color = np.array(base_color) + offset
     color = np.clip(color, 0, 255)
     return tuple(color.astype(np.uint8))
 
-"""
-A pytorch Dataset that generates 32x32 images, each with one shape 
-(circle, triangle, square), random size, position, rotation, and a 
-randomly perturbed color.
-"""
+
 class ColoredShapes32(Dataset):
     """
+    A pytorch Dataset that generates 32x32 images, each with one shape 
+    (circle, triangle, square), random size, position, rotation, and a 
+    randomly perturbed color.
     Args:
-        length (int): Number of images to generate
+        length: Number of images to generate
         transform: Optional transform to apply to each image
     """
     def __init__(self, length = 64000, transform=None):
@@ -54,17 +54,19 @@ class ColoredShapes32(Dataset):
         self.color_indices = np.random.randint(0, len(COLOR_CLASSES), size=self.length)
         self.shape_indices = np.random.randint(0, len(SHAPE_CLASSES), size=self.length)
 
-    """
-    Return how many samples in the dataset
-    """
+
     def __len__(self):
+        """
+        Return how many samples in the dataset
+        """
         return self.length
 
-    """
-    Create a 32x32 image w/ white background
-    draw a single shape random postion/size/rotation
-    """
+    
     def _draw_shape_on_image(self, shape_type, color):
+        """
+        Create a 32x32 image w/ white background
+        draw a single shape random postion/size/rotation
+        """
         # draw on 32x32 RGBA image first 
         # then combine with white background
         overlay = Image.new("RGBA", (IMAGE_SIZE, IMAGE_SIZE), (0, 0, 0, 0))
@@ -100,18 +102,19 @@ class ColoredShapes32(Dataset):
         
         return combined
 
-    """
-    Retrieve the idx-th sample from the dataset:
-    1) Determine color + shape
-    2) Draw shape as 32x32 RBG image
-    3) Apply transform (none for this)
-    4) Covert to Pytorch tensor since transform is none
-    5) Return (image, (color_label, shape_label))
 
-    color_label is an int [0, 7]
-    shape_label is an int [0, 2]
-    """
     def __getitem__(self, idx):
+        """
+        Retrieve the idx-th sample from the dataset:
+        1) Determine color + shape
+        2) Draw shape as 32x32 RBG image
+        3) Apply transform (none for this)
+        4) Covert to Pytorch tensor since transform is none
+        5) Return (image, (color_label, shape_label))
+
+        color_label is an int [0, 7]
+        shape_label is an int [0, 2]
+        """
         c_idx = self.color_indices[idx]
         s_idx = self.shape_indices[idx]
 

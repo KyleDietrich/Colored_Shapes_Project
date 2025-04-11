@@ -8,7 +8,16 @@ import torch.nn.functional as F
 from loss_functions import alignment_loss, uniformity_loss
 from torchvision import transforms
 
-"""
+
+def train_autoencoder(
+    model,
+    dataset,
+    num_epochs=40,
+    batch_size=128,
+    lr=1e-3,
+    print_every=1
+):
+    """
     train_autoencoder:
     Trains a convolutional autoencoder to reconstruct images from the dataset.
     We use MSELoss between the original images and the reconstructed outputs.
@@ -26,20 +35,24 @@ from torchvision import transforms
     
     Returns:
         model: The trained autoencoder, updated in-place.
-"""
-def train_autoencoder(
-    model,
-    dataset,
-    num_epochs=40,
-    batch_size=128,
-    lr=1e-3,
-    print_every=1
-):
+    """
+
     # training loop go here
 
     return model
 
-"""
+
+def contrastive_train(
+    model, 
+    dataset, 
+    transfom_fn,
+    num_steps=20000, 
+    batch_size=128, 
+    lr=1e-3, 
+    t=2.0, 
+    print_every=500
+):
+    """
     contrastive_train:
     This function trains a small CNN that outputs 2D embeddings
     using a contrastive learning approach with two main losses:
@@ -62,17 +75,8 @@ def train_autoencoder(
 
     Returns:
         model: The trained model
-"""
-def contrastive_train(
-    model, 
-    dataset, 
-    transfom_fn,
-    num_steps=20000, 
-    batch_size=128, 
-    lr=1e-3, 
-    t=2.0, 
-    print_every=500
-):
+    """
+
     # training loop go here
 
     return model

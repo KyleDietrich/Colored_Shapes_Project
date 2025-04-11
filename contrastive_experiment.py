@@ -26,12 +26,13 @@ Ts = transforms.Compose([
     transforms.ToTensor()
 ])
 
-"""
-A small CNN that outputs 2D embeddings from 32x32 inputs.
-We apply L2 normalization at the end so the embedding lie on the unit circle.
-Total "6 layers" 3 downsampling, 2 refinement, final flatten+fc.
-"""
+
 class SmallCNN(nn.Module):
+    """
+    A small CNN that outputs 2D embeddings from 32x32 inputs.
+    We apply L2 normalization at the end so the embedding lie on the unit circle.
+    Total "6 layers" 3 downsampling, 2 refinement, final flatten+fc.
+    """
     def __init__(self, out_dim=2):
         super().__init__()
 
@@ -52,13 +53,14 @@ class SmallCNN(nn.Module):
             # Then we have feature map -> 128*4*4 = 2048
             # Map out with FC layer
     
-    """
-    Foward pass:
-        x: (batch_size, 3, 32, 32)
-    returns:
-        A 2D embedding for each sample, normalized to lie on unit circle
-    """
+
     def forward(self, x):
+        """
+        Foward pass:
+            x: (batch_size, 3, 32, 32)
+        returns:
+            A 2D embedding for each sample, normalized to lie on unit circle
+        """
         # Extract features
         x = self.conv_net(x) 
 

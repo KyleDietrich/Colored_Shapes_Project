@@ -3,7 +3,9 @@
 import torch
 import torch.nn.functional as F
 
-"""
+
+def alignment_loss(z1, z2):
+    """
     Alignment loss:
     This measures how close each pair of embeddings (z1_i, z2_i) are,
     typically used to pull embeddings of two augmented views of the
@@ -15,11 +17,12 @@ import torch.nn.functional as F
         z2 (Tensor): shape (batch_size, embedding_dim)
     Returns:
         Tensor: a single scalar (mean squared distance)
-"""
-def alignment_loss(z1, z2):
+    """
     return (z1 - z2).pow(2).sum(dim=1).mean()
 
-"""
+
+def uniformity_loss(z, t=2.0):
+    """
     Uniformity loss:
     This allows the embeddings to spread out in space rather than
     collapsing to the same point. We calculate pairwise distances between
@@ -30,8 +33,7 @@ def alignment_loss(z1, z2):
         t (float): temperature parameter controlling the strength of repulsion
     Returns:
         Tensor: a single scalar representing how uniformly spread out the embeddings are
-"""
-def uniformity_loss(z, t=2.0):
+    """
     batch_size = z.size(0)
     dist_matrix = (z.unsqueeze(1) - z.unsqueeze(0)).pow(2).sum(dim=2)
     off_diag_mask = ~torch.eye(batch_size, dtype=torch.bool, device=z.device)
