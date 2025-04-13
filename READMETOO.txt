@@ -3,24 +3,23 @@ im just gonna type stuff here when i work on it
 
 WHAT I DID SO FAR:
 
--- Image generation should be working at least in my singular tests it has worked
-		I have yet to do a large dataset yet so we will see...
+-- Image generation should be working 
 
 -- defined our loss functions in loss_functions.py
 
 -- outlined the file for the autonconder model
 		youll probably need to import some more pytorch stuff
 
--- outlined the contrastive learning expirement
-		I did more for this since youll be working on autoencoder part
+-- trained constrastive learning model (SmallCNN)
 
--- outlined the training functions
+-- finished constrastive training function
+
+-- Test trained the constrative model. Looks like itll take about 2 hour 
 
 WHAT NEEDS TO BE DONE STILL
--- full test on dataset generation
--- construct both models
--- set up training loops for both models
--- actually TRAIN the models
+-- construct Autoencode (encoder + decoder) model
+-- set up training loops for autencoder model
+-- Train autoencdoer 
 -- visualize data
 
 -- make slides for presentation
