@@ -2,8 +2,10 @@
 
 from turtle import color
 from types import NoneType
+from encoder import Encoder
+from decoder import Decoder
 import torch
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
 from PIL import Image, ImageDraw
 import numpy as np
@@ -23,6 +25,15 @@ COLOR_CLASSES = [
 
 SHAPE_CLASSES = ["circle", "triangle", "square"]
 IMAGE_SIZE = 32
+if torch.accelerator.is_available():
+    our_device = torch.accelerator.current_accelerator().type 
+else:
+    our_device = "cpu"
+
+our_device="cpu"
+torch.set_default_device(our_device)
+
+print(f"Using {our_device} device")
 
 
 def random_color_perturbation(base_color, perturb_range = 20):
@@ -137,12 +148,26 @@ class ColoredShapes32(Dataset):
 
 # Small test to enusre it works
 if __name__ == "__main__":
+    encoder = Encoder()
+    decoder = Decoder()
+
     ds = ColoredShapes32(length=10)
     print("Dataset length:", len(ds))
+    dataloader = DataLoader(ds, batch_size=2, shuffle=True, num_workers=0, generator= torch.Generator(device=our_device))
+    for image, label in dataloader:
+        img = image[0]
+        lab = label[0]
+        img.to(our_device)
+        lab.to(our_device)
+        output = encoder(img)
+        decoder(output)
+
+
+
 
     # one sample
     sample_img, (color_label, shape_label) = ds[0]
-    print("Sample image shape:", sample_img.shape)
-    print("Color label:", color_label, "Shape label:", shape_label)
+    #print("Sample image shape:", sample_img.shape)
+    #print("Color label:", color_label, "Shape label:", shape_label)
 
                             
