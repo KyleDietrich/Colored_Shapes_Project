@@ -56,6 +56,9 @@ def main():
         t=2.0,
         print_every=500
     )
+    
+    torch.save(model_color.state_dict(), "contrastive_model_color.pth")
+    print("Model save successfully as contrastive_model_color.pth")
 
     # Shape run, for shape-sensitivity
     print("=== Training: Shape-Sensitive Embedding (Ts) ===")
@@ -71,8 +74,8 @@ def main():
         print_every=500
     )
 
-    torch.save(model.state_dict(), "contrastive_model.pth")
-    print("Model save successfully as contrastive_model.pth")
+    torch.save(model_shape.state_dict(), "contrastive_model_shape.pth")
+    print("Model save successfully as contrastive_model_shape.pth")
 
 if __name__ == "__main__":
     main()

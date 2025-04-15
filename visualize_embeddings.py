@@ -81,19 +81,27 @@ def main():
     # Create dataset
     dataset = ColoredShapes32(length=64000, transform=transforms.ToTensor())
 
-    model = SmallCNN(out_dim=2).to(device)
+    # Load color sensitive model 
+    model_color = SmallCNN(out_dim=2).to(device)
+    saved_model_color = "contrastive_model_color.pth"
+    model_color.load_state_dict(torch.load(saved_model_color, map_location=device))
+    model_color.eval()
+    print("Loaded color senesitive model from:", saved_model_color)
 
-    # Instantiate trained model or a checkpoint
-    saved_model = "contrastive_model.pth"
-    model.load_state_dict(torch.load(saved_model, map_location=device))
-    model.eval()
-    print("Loaded saved model:", saved_model)
+    embeddings_color, color_labels, shape_labels = get_embeddings(model_color, dataset, n_points=2000, device=device)
+    plot_embeddings(embeddings_color, color_labels, title="Embeddings by Color Label", label_type="color")
+    plot_embeddings(embeddings_color, shape_labels, title="Embeddings by Shape Label", label_type="shape")
 
-    embeddings, color_labels, shape_labels = get_embeddings(model, dataset, n_points=2000, device=device)
+    # Load shape sensitive model
+    model_shape = SmallCNN(out_dim=2).to(device)
+    saved_model_shape = "contrastive_model_shape.pth"
+    model_shape.load_state_dict(torch.load(saved_model_shape, map_location=device))
+    model_shape.eval()
+    print("Loaded shape senesitive model from:", saved_model_shape)
 
-    plot_embeddings(embeddings, color_labels, title="Embeddings by Color Label", label_type="color")
-
-    plot_embeddings(embeddings, shape_labels, title="Embeddings by Shape Label", Label_type="shape")
+    embeddings_shape, color_labels, shape_labels = get_embeddings(model_shape, dataset, n_points=2000, device=device)
+    plot_embeddings(embeddings_shape, color_labels, title="Embeddings by Color Label", label_type="color")
+    plot_embeddings(embeddings_shape, shape_labels, title="Embeddings by Shape Label", label_type="shape")
 
 
 if __name__ == "__main__":

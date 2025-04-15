@@ -1,9 +1,6 @@
 # dataset.py
 
-from turtle import color
 from types import NoneType
-from encoder import Encoder
-from decoder import Decoder
 import torch
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms

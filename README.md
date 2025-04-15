@@ -20,10 +20,16 @@ colored_shapes_project/
   ├── loss_functions_.py
   
   ├── training.py
+
+  ├── models.py
   
   ├── autoencoder_experiment.py
   
   ├── contrastive_experiment.py
+
+  ├── analyze_autoencoder_embeddings.py
+
+  ├── visualize_embeddings.py
   
   └── README.md
 

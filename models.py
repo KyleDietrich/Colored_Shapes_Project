@@ -1,9 +1,9 @@
 # models.py
 
-from turtle import forward
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+
 
 class SmallCNN(nn.Module):
     """
@@ -71,7 +71,31 @@ class ConvEncoder(nn.Module):
     - Outputs a latent vector of size `latent_dim`.
     """
 
-    # TODO: model for encoder here
+    def __init__(self, latent_dim=128):
+        super().__init__() #call super class
+        self.encoding_stack = nn.Sequential(
+            nn.Conv2d( in_channels=3, out_channels=32, kernel_size=4, stride=2, padding=1, dilation=1, groups=1, bias=True, padding_mode='zeros', dtype=None), # 32, 32
+            nn.ReLU(),
+
+            nn.Conv2d( in_channels=32, out_channels=64, kernel_size=4, stride=2, padding=1, dilation=1, groups=1, bias=True, padding_mode='zeros', dtype=None),# 16, 16 
+            nn.ReLU(), 
+
+            nn.Conv2d( in_channels=64, out_channels=128, kernel_size=4, stride=2, padding=1, dilation=1, groups=1, bias=True, padding_mode='zeros', dtype=None),# 8, 8 
+            nn.ReLU(),
+
+            nn.Conv2d( in_channels=128, out_channels=256, kernel_size=4, stride=2, padding=1, dilation=1, groups=1, bias=True, padding_mode='zeros', dtype=None),# 4, 4 
+            nn.ReLU(), 
+
+            nn.Conv2d( in_channels=256, out_channels=256, kernel_size=3, stride=1, padding=1, dilation=1, groups=1, bias=True, padding_mode='zeros', dtype=None),# 2, 2
+            nn.ReLU(),
+
+            nn.Conv2d( in_channels=256, out_channels=256, kernel_size=3, stride=1, padding=1, dilation=1, groups=1, bias=True, padding_mode='zeros', dtype=None),# 2, 2
+            nn.ReLU(),
+
+            nn.Flatten(1),
+
+            nn.LazyLinear(128)
+        )
 
     def forward(self, x):
         """
@@ -80,9 +104,8 @@ class ConvEncoder(nn.Module):
         Returns:
             Tensor: shape (batch_size, latent_dim) (e.g. 128)
         """
-        # TODO
-
-        return x
+        representation = self.encoding_stack(x)
+        return representation
 
 class ConvDecoder(nn.Module):
     """
@@ -93,6 +116,36 @@ class ConvDecoder(nn.Module):
     """
 
     # TODO: model here for decoder
+    def __init__(self, latent_dim=128):
+        super().__init__()
+        # First map latent vector back to 2D feature map, (256 * 2 * 2)
+        self.fc = nn.Linear(latent_dim, 256 * 2 * 2)
+
+        # First two layer dont change spatial dimesions only refine features, 
+        # then next layer upsample back to input size
+        self.convT_layers = nn.Sequential(
+
+            nn.ConvTranspose2d(256, 256, kernel_size=3, stride=1, padding=1),
+            nn.ReLU(inplace=True),
+            
+            nn.ConvTranspose2d(256, 256, kernel_size=3, stride=1, padding=1),
+            nn.ReLU(inplace=True),
+            
+            # 2x2 -> 4x4
+            nn.ConvTranspose2d(256, 128, kernel_size=4, stride=2, padding=1),
+            nn.ReLU(inplace=True),
+            
+            # 4x4 -> 8x8
+            nn.ConvTranspose2d(128, 64, kernel_size=4, stride=2, padding=1),
+            nn.ReLU(inplace=True),
+            
+            # 8x8 -> 16x16
+            nn.ConvTranspose2d(64, 32, kernel_size=4, stride=2, padding=1),
+            nn.ReLU(inplace=True),
+
+            # 16x16 -> 32x32, output channel become 3 for RGB image
+            nn.ConvTranspose2d(32, 3, kernel_size=4, stride=2, padding=1)
+        )
 
     def forward(self, z):
         """
@@ -101,9 +154,13 @@ class ConvDecoder(nn.Module):
         Returns:
             Tensor: shape (batch_size, 3, 32, 32)
         """
-        # TODO 
+        # Map latent vector to feature map
+        x = self.fc(z)
+        # Reshape 
+        x = x.view(x.size(0), 256, 2, 2)
+        x = self.convT_layers(x)
 
-        return z
+        return x
 
 class ConvAutoencoder(nn.Module):
     """
@@ -114,6 +171,10 @@ class ConvAutoencoder(nn.Module):
     """
 
     # TODO: Combine encoder and decoder
+    def __init__(self, latent_dim=128):
+        super().__init__()
+        self.encoder = ConvEncoder(latent_dim=latent_dim)
+        self.decoder = ConvDecoder(latent_dim=latent_dim)
 
     def forward(self, x):
         """
@@ -121,5 +182,6 @@ class ConvAutoencoder(nn.Module):
           1) Encode x -> z
           2) Decode z -> reconstruction
         """
-
-        return reconstruction
+        z = self.encoder(x)
+        x_hat = self.decoder(z)
+        return x_hat
