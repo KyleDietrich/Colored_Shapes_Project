@@ -5,3 +5,6 @@
 /.vs
 .venv
 __pycache__
+*.log
+*.pdf
+*.aux
