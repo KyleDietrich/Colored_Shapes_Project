@@ -53,7 +53,14 @@ def train_autoencoder(
     optimizer = optim.Adam(model.parameters(), lr=lr)
 
     # DataLoader for dataset
-    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, drop_last=True)
+    dataloader = DataLoader(
+            dataset, 
+            batch_size=batch_size, 
+            shuffle=True, 
+            drop_last=True,
+            num_workers=4,
+            pin_memory=True
+    )
 
     # Training loop over epochs
     for epoch in range(1, num_epochs + 1):
@@ -126,7 +133,7 @@ def train_contrastive(
     """
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print("Contrastive trainig using device:", device)
+    print("Contrastive training using device:", device)
     model = model.to(device)
     model.train()
 
@@ -134,7 +141,14 @@ def train_contrastive(
     optimizer = optim.Adam(model.parameters(), lr=lr)
 
     # Datalaoder for dataset
-    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, drop_last=True)
+    dataloader = DataLoader(
+            dataset, 
+            batch_size=batch_size, 
+            shuffle=True, 
+            drop_last=True,
+            num_workers=4,
+            pin_memory=True
+    )
     data_iter = iter(dataloader)
 
     for step in range(1, num_steps + 1):

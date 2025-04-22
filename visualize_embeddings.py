@@ -7,103 +7,71 @@ from torchvision import transforms
 from dataset import ColoredShapes32
 from models import SmallCNN
 
-def get_embeddings(model, dataset, n_points=2000, device=None):
-    """
-    Computes embeddings for a random subset of the dataset.
-    
-    Args:
-        model: Trained model that outputs 2D embeddings.
-        dataset: The dataset from which to sample images.
-        n_points: Number of samples to visualize. 
-        device: Device on which computations are performed.
-    
-    Returns:
-        embeddings: Array of shape (n_points, 2) with the embeddings.
-        colors: Array of color labels corresponding to each embedding.
-        shapes: Array of shape labels corresponding to each embedding.
-    """
-    if device is None:
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+# ---------- CONFIG ----------
+MODEL = "contrastive_model_shape.pth" # Change to shape model for second plot
+N_POINTS = 3000
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    model.eval() # evaluation mode
-    embeddings = []
-    color_labels = []
-    shape_labels = []
+# ------ Color & Markers -----
+color_palette = [
+    "#E24A33", "#348ABD", "#988ED5", "#777777",
+    "#FBC15E", "#8EBA42", "#FFB5B8", "#56B4E9"
+]
 
-    # Randomly choose indices from the dataset
-    indices = np.random.choice(len(dataset), size=n_points, replace=False)
+shape_markers = {
+    0: "o",
+    1: "^",
+    2: "s"
+}
+
+def get_embeddings(model, dataset, n_pts, device):
+    model.eval()
+    idx = np.random.choice(len(dataset), n_pts, replace=False)
+    zs, colors, shapes = [], [], []
 
     with torch.no_grad():
-        for idx in indices:
-            img, (c_label, s_label) = dataset[idx]
+        for i in idx:
+            x, lab = dataset[i]
+            colors.append(int(lab[0]))
+            shapes.append(int(lab[1]))
+            z = model(x.unsqueeze(0).to(device))
+            zs.append(z.cpu().numpy()[0])
 
-            # Batch dimension: (3,32,32) -> (1,3,32,32)
-            img = img.unsqueeze(0).to(device)
+    zs = np.array(zs)
+    return zs, np.array(colors), np.array(shapes)
 
-            # Forward pass through the model
-            emb = model(img) # we want (1,2)
-            embeddings.append(emb.cpu().numpy()[0])
+def plot_ring(zs, colors, shapes, title):
+    theta = np.linspace(0, 2*np.pi, 400)
+    plt.figure(figsize=(6,6))
+    plt.plot(np.cos(theta), np.sin(theta), color="lightgray", lw=1)
 
-            color_labels.append(c_label)
-            shape_labels.append(s_label)
-
-    embeddings = np.array(embeddings)
-    color_labels = np.array(color_labels)
-    shape_labels = np.array(shape_labels)
-    return embeddings, color_labels, shape_labels
-
-
-def plot_embeddings(embeddings, labels, title="2D Embeddings", label_type="color"):
-    """
-    Plots 2D embeddings using matplotlib.
-    
-    Args:
-        embeddings (np.ndarray): Array of shape with the embeddings.
-        labels (np.ndarray): Array of labels for each embedding.
-        title (str): Title of the plot.
-        label_type (str): Which label type is being used 
-    """
-    plt.figure(figsize=(8, 6))
-    scatter = plt.scatter(embeddings[:, 0], embeddings[:, 1], 
-                          c=labels, cmap="viridis", alpha=0.7)
-    plt.title(title)
-    plt.xlabel("Dimesion 1")
-    plt.ylabel("Dimension 2")
-    plt.axis("equal")
-    plt.colorbar(scatter, label=label_type)
-    plt.show()
-
+    for c_id in range(8):
+        for s_id in range(3):
+            mask = (colors == c_id) & (shapes == s_id)
+            if mask.sum() == 0: continue
+            plt.scatter(
+                zs[mask,0], zs[mask,1],
+                c=[color_palette[c_id]],
+                marker=shape_markers[s_id],
+                edgecolors="k", linewidths=0.4, s=70, alpha=0.9
+            )
+    plt.title(title, fontsize=14)
+    plt.axis("equal"); plt.axis("off")
+    plt.tight_layout(); plt.show()
 
 def main():
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print("Visualizing embeddings on device:", device)
+    ds = ColoredShapes32(length=64000, transform=transforms.ToTensor())
 
-    # Create dataset
-    dataset = ColoredShapes32(length=64000, transform=transforms.ToTensor())
+    model = SmallCNN(out_dim=2).to(DEVICE)
+    model.load_state_dict(torch.load(MODEL, map_location=DEVICE))
+    model = model.to(DEVICE)
 
-    # Load color sensitive model 
-    model_color = SmallCNN(out_dim=2).to(device)
-    saved_model_color = "contrastive_model_color.pth"
-    model_color.load_state_dict(torch.load(saved_model_color, map_location=device))
-    model_color.eval()
-    print("Loaded color senesitive model from:", saved_model_color)
+    zs, colors, shapes = get_embeddings(model, ds, N_POINTS, DEVICE)
 
-    embeddings_color, color_labels, shape_labels = get_embeddings(model_color, dataset, n_points=2000, device=device)
-    plot_embeddings(embeddings_color, color_labels, title="Embeddings by Color Label", label_type="color")
-    plot_embeddings(embeddings_color, shape_labels, title="Embeddings by Shape Label", label_type="shape")
-
-    # Load shape sensitive model
-    model_shape = SmallCNN(out_dim=2).to(device)
-    saved_model_shape = "contrastive_model_shape.pth"
-    model_shape.load_state_dict(torch.load(saved_model_shape, map_location=device))
-    model_shape.eval()
-    print("Loaded shape senesitive model from:", saved_model_shape)
-
-    embeddings_shape, color_labels, shape_labels = get_embeddings(model_shape, dataset, n_points=2000, device=device)
-    plot_embeddings(embeddings_shape, color_labels, title="Embeddings by Color Label", label_type="color")
-    plot_embeddings(embeddings_shape, shape_labels, title="Embeddings by Shape Label", label_type="shape")
-
+    if "color" in MODEL:
+        plot_ring(zs, colors, shapes, "Color-Sensitive Contrastive Embedding")
+    else:
+        plot_ring(zs, colors, shapes, "Shape-Sensitive Contrastive Embedding")
 
 if __name__ == "__main__":
     main()
-

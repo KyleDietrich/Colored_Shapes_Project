@@ -61,22 +61,27 @@ def plot_embeddings_pca(embeddings, labels, label_idx=0, title="Embeddings (PCA)
                         label_idx=0 might correspond to color, label_idx=1 to shape.
         title (str): Plot title.
     """
-    # reduce to 2D
     pca = PCA(n_components=2)
     embeddings_2d = pca.fit_transform(embeddings)
 
-    # Extract labels for coloring
     label_values = np.array([lb[label_idx] for lb in labels])
 
-    plt.figure(figsize=(8, 6))
-    scatter = plt.scatter(embeddings_2d[:, 0], embeddings_2d[:, 1],
-                          c=label_values, cmap="viridis", alpha=0.7)
+    colors = ["tab:purple", "tab:green", "tab:orange"]
+    markers = ["o", "^", "s"]
+    class_names = ["circle", "triangle", "square"]
+    
+    plt.figure(figsize=(8,6))
+    for cls in [0, 1, 2]:
+        mask = label_values == cls
+        plt.scatter(
+            embeddings_2d[mask, 0], embeddings_2d[mask, 1],
+            c=colors[cls], marker=markers[cls], label=class_names[cls],
+            s=35, alpha=0.8, edgecolors="k", linewidths=0.2
+        )
+
     plt.title(title)
-    plt.xlabel("PCA Component 1")
-    plt.ylabel("PCA Component 2")
-    plt.axis("equal")
-    plt.colorbar(scatter, label="Label {}".format(label_idx))
-    plt.show()
+    plt.tight_layout(); plt.show()
+
 
 def nearest_neighbors_visualization(model, dataset, device, n_neighbors=5):
     """
@@ -141,8 +146,10 @@ def main():
     print("Loaded model from", autoencoder_model)
 
     # Embeddings and PCA visualization
-    n_points = 2000
+    n_points = 1500
     embeddings, labels = extract_embeddings(model, dataset, device, n_points=n_points)
+    labels = np.array(labels)
+    print(np.bincount(labels[:,1].astype(int)))
 
     plot_embeddings_pca(embeddings, labels, label_idx=0, title="Embeddings by Color Label")
     plot_embeddings_pca(embeddings, labels, label_idx=1, title="Embeddings by Shape Label")
