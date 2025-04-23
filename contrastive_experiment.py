@@ -15,7 +15,6 @@ def main():
       2) Ts (random crop + color jitter) -> encourages shape-sensitive embeddings.
     """
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    print("Using device:", device)
 
     # Data set with no transforms
     dataset = ColoredShapes32(length=64000, transform=None)
@@ -54,7 +53,8 @@ def main():
         batch_size=128,
         lr=1e-3,
         t=2.0,
-        print_every=500
+        print_every=500,
+        num_workers=4
     )
     
     torch.save(model_color.state_dict(), "contrastive_model_color.pth")
@@ -71,7 +71,8 @@ def main():
         batch_size=128,
         lr=1e-3,
         t=2.0,
-        print_every=500
+        print_every=500,
+        num_workers=4
     )
 
     torch.save(model_shape.state_dict(), "contrastive_model_shape.pth")

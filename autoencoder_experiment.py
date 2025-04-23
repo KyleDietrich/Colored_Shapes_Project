@@ -13,7 +13,7 @@ def main():
     print("Using device:", device)
     model = model.to(device)
 
-    trained_model = train_autoencoder(model, data, num_epochs=40, batch_size=128, lr=1e-3)
+    trained_model = train_autoencoder(model, data, num_epochs=40, batch_size=128, lr=1e-3, num_workers=4)
 
     torch.save(trained_model.state_dict(), "Autoencoder_model.pth")
     print("Autoencoder_model saved succesfully")

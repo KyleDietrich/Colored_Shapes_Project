@@ -19,7 +19,8 @@ def train_autoencoder(
     num_epochs=40,
     batch_size=128,
     lr=1e-3,
-    print_every=1
+    print_every=1,
+    num_workers=0
 ):
     """
     train_autoencoder:
@@ -42,7 +43,6 @@ def train_autoencoder(
     """
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print("Autoencoder training using device:", device)
     model = model.to(device)
     model.train()
 
@@ -58,7 +58,7 @@ def train_autoencoder(
             batch_size=batch_size, 
             shuffle=True, 
             drop_last=True,
-            num_workers=4,
+            num_workers=num_workers,
             pin_memory=True
     )
 
@@ -105,7 +105,8 @@ def train_contrastive(
     batch_size=128, 
     lr=1e-3, 
     t=2.0, 
-    print_every=500
+    print_every=500,
+    num_workers=0
 ):
     """
     train_contrastive:

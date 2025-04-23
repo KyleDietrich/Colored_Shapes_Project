@@ -58,7 +58,7 @@ def plot_embeddings_pca(embeddings, labels, label_idx=0, title="Embeddings (PCA)
     Args:
         embeddings (np.ndarray): Shape (N, latent_dim)
         labels (list): List of label tuples; label_idx indicates which label to use for coloring.
-                        label_idx=0 might correspond to color, label_idx=1 to shape.
+                        label_idx=0 correspond to color, label_idx=1 to shape.
         title (str): Plot title.
     """
     pca = PCA(n_components=2)
@@ -146,7 +146,7 @@ def main():
     print("Loaded model from", autoencoder_model)
 
     # Embeddings and PCA visualization
-    n_points = 1500
+    n_points = 3000
     embeddings, labels = extract_embeddings(model, dataset, device, n_points=n_points)
     labels = np.array(labels)
     print(np.bincount(labels[:,1].astype(int)))

@@ -1,6 +1,5 @@
 # dataset.py
 
-from types import NoneType
 import torch
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
@@ -87,7 +86,7 @@ class ColoredShapes32(Dataset):
         shape_size = random.randint(8, 16)
 
         # Draw shape onto overlay
-        if shape_type == "cirle":
+        if shape_type == "circle":
             draw.ellipse((x0, y0, x0 + shape_size, y0 + shape_size), fill=color + (255,))
         elif shape_type == "square":
             draw.rectangle((x0, y0, x0 + shape_size, y0 + shape_size), fill=color + (255,))
