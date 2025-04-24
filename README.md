@@ -49,19 +49,28 @@ probably explain what each does here
 	pip install scikit-learn
 
 # Usage
-All commandsassume you are at the project root and has depedencies installed
+All commands assume you are at the project root and has depedencies installed
+
 
 Preview synthetic dataset
+
 python examples.py
 
+
 Train the 128-dim convolutional auto-encoder
+
 python autoencoder_experiment.py
 
+
 Train the contrastive models (color-sensitive & shape-sensitive)
+
 python constrative_experiment.py
 
+
 analyze & visualize auto-encoder embeddings
+
 python analyze_autoencoder_embeddings.py
+
 
 Visualize 2-D contrastive models
 python visualize_embeddings.py
