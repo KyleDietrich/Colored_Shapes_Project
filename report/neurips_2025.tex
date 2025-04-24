@@ -1,4 +1,6 @@
 \documentclass{article}
+\usepackage{graphicx}
+\graphicspath{ {./figures/} }
 \usepackage[final]{neurips_2025}
 \usepackage[utf8]{inputenc} % allow utf-8 input
 \usepackage[T1]{fontenc}    % use 8-bit T1 fonts
@@ -9,10 +11,9 @@
 \usepackage{nicefrac}       % compact symbols for 1/2, etc.
 \usepackage{microtype}      % microtypography
 \usepackage{xcolor}         % colors
-
-
 \title{Color-Shape Representation Learning with Autoencoders and Contrastive Learning}
-\author{%
+\author
+{
     Kyle Dietrich \\
     \And
     Preston Hines \\
@@ -20,6 +21,9 @@
 \begin{document}
 \maketitle
 \begin{abstract}
+    In this paper we explore two results from \textit{Foundations of Computer Vision}. 
+    One is an autoencoder while the other is a contrastive based approach. 
+    This was to learn and gain hands on experience with computer vision tasks as well as industry staples such as \textit{pytorch, matplotlib,} and \textit{pillow}
 \end{abstract}
 \section{Introduction}
 This project aims to reproduce, analyze, and extend two experiments from \textit{Foundations of Computer Vision} on a toy dataset of colored geometric shapes comprised of circles, trianges, and squares.
@@ -45,7 +49,7 @@ By Replicating these textbook examples, we will deepen our understanding of core
 how encoders \textit{compress} data;
 how embeddings reflect invariances introduced by data augmentations;
 and how evaluating embeddings via nearest neighbors or classification helps reveal learned features.
-\newpage
+
 \section{Approach}
 \subsection{Baseline}
 The baseline approach will be the replication of the autoencoder experiments from \textbf{Section 20.4}:
@@ -78,7 +82,32 @@ Tools
     \item \textbf{Libraries}: PyTorch for model training, NumPy/PIL for synthetic data creation Matplotlib for visualization.
 \end{itemize}
 \section{Evaluation}
+The Evaluation for this has two pieces one for the autoencoder and one for the contrastive model.
+\begin{itemize}
+    \item Autoencoder
+        \paragraph{
+        \textbf{Does the bottleneck keep enough info to rebuild the image and attributes?}}measured by reconstruction MSE, nearest-neighbor, and 1-NN accuracy
+    \item Contrastive 
+        \paragraph{
+        \textbf{Does the embedding capture only the attribute we want from the augmentations?}} measured by training loses alignment and uniformity, 2D scatter plots, and 1-NN accuracy
+\end{itemize}
 \subsection{Data}
+The data is synthetic. It was constituted of 64,000 32x32, randomly-generated images. 
+Each image is either a square, circle, or triangles and is either one of eight colors
+Each image had randomly varying,
+\begin{itemize}
+    \item shape
+    \item size
+    \item rotation
+    \item position
+    \item color
+\end{itemize}
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.25]{data_sample}
+    \caption{An example of synthetic data generated}
+    \label{fig:data_sample}
+\end{figure}
 \subsection{Metrics}
 \begin{itemize}
     \item Nearest-neighbor classification on color and shape labels.
@@ -87,7 +116,66 @@ Tools
 \end{itemize}
 
 \subsection{Results}
+\subsubsection{Baseline Approach}
+\begin{itemize}
+    \item Reconstruction Loss
+    \begin{itemize}
+        \item $MSE = 0.038 \leftarrow$ lower means better reconstruction
+    \end{itemize}
+    \item 1-NN Test 
+    \begin{itemize}
+        \item Color accuracy = 57 \% 
+        \item Shape accuracy = 82 \% 
+        \item The Bottleneck keeps a strong shape embedding while losing color precision
+    \end{itemize}
+\end{itemize}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.25]{autoencoder_color_label}
+    \caption{Autoencoder generated graph for color label}
+    \label{fig:autoencoder_color_label1}
+\end{figure}
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.25]{autoencoder_shape_label}
+    \caption{Autoencoder generated graph for shape label}
+    \label{fig:autoencoder_color_label1}
+\end{figure}
+\subsubsection{Advanced Approach}
+\begin{itemize}
+    \item Embeddings don't collapse or explode 
+        \begin{itemize}
+            \item Allignment $\rightarrow 0.04$, Uniformity $\rightarrow -1.3$
+        \end{itemize}
+    \item Scatter plots show sectoring for the target attribute
+        \begin{itemize}
+            \item Color-run: eight color clusters around the circle (shapes random)
+            \item Shape-run: three shape clusters around the circle (color random)
+        \end{itemize}
+    \item 1-NN Test 
+        \begin{itemize}
+            \item Color-model: color $\approx$ 85\%, shape $\approx$ 33\%
+            \item Shape-model: color $\approx$ 35\%, shape $\approx$ 90\%
+        \end{itemize}
+\end{itemize}
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.25]{contrastive_color_sensitive}
+    \caption{}
+    \label{fig:contrastive_color_sensitive1}
+\end{figure}
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.25]{contrastive_shape_sensitive}
+    \caption{}
+    \label{fig:contrastive_shape_sensitive1}
+\end{figure}
 \section{Conclusion}
+In conclusion our paper replicated two results from \textit{Foundations of Computer Vision}. 
+The paper demonstrated the limitation of an autoencoder based approach:
+without deeper layer analysis autoencoders will struggle to capture color information.
+Furthermore, contrastive models can be used to design what the embedding capture by deploying strategic augmentations.
 \subsection{Insights}
 The paper illuminates that:
 \begin{itemize}
@@ -105,8 +193,15 @@ The project involves:
     \item Writing documentation and a final report. 
 \end{itemize}
 \subsection{Challenges}
+Some the key challenges faced in implementing this project were the following.
+\begin{itemize}
+    \item Learning Pytorch and skLearn
+    \item How to contruct a small CNN and autoencoder
+    \item How to use 1-NN classifiers to get accuracy scores
+    \item Generation of the dataset wasn't entirely trivial and was vital to proper results
+\end{itemize}
 \section{Duplication Statement}
-This project reproduces experiments from Foundations of Computer Vision (Torralba et al., 2024). Online code for the textbook’s examples is not directly used; instead, we will implement everything from scratch. We will ensure our results and code are not merely copies of any existing implementations but a genuine re-implementation and extension (e.g., adjusting resolutions, analyzing color/shape classification). 
+This project reproduces experiments from \textit{Foundations of Computer Vision}. Online code for the textbook’s examples is not directly used; instead, we will implement everything from scratch. We will ensure our results and code are not merely copies of any existing implementations but a genuine re-implementation and extension (e.g., adjusting resolutions, analyzing color/shape classification). 
 \newpage
 \section*{References}
 \medskip
@@ -114,9 +209,4 @@ This project reproduces experiments from Foundations of Computer Vision (Torralb
 \small
 [1] Antonio Torralba, Phillip Isola, \& William T.\ Freeman. (2024). \textit{Foundations of Computer Vision.} The MIT Press. 
 }
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\appendix
-\section{Technical Appendices and Supplementary Material}
-Technical appendices with additional results, figures, graphs and proofs may be submitted with the paper submission before the full submission deadline (see above), or as a separate PDF in the ZIP file below before the supplementary material deadline. There is no page limit for the technical appendices.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \end{document}
