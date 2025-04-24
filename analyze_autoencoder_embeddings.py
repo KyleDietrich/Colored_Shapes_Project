@@ -1,8 +1,11 @@
 # analyze_autoencoder_embeddings
 
+from matplotlib.cm import get_cmap
 import torch
 import numpy as np
+import torch.nn as nn
 import matplotlib.pyplot as plt
+from torch.nn.modules import batchnorm
 from torchvision import transforms
 from torch.utils.data import DataLoader, random_split
 from sklearn.neighbors import KNeighborsClassifier
@@ -15,18 +18,6 @@ def extract_embeddings(model, dataset, device, n_points=None):
     """
     Extract latent representations (embeddings) using the encoder part 
     of the autoencoder.
-    
-    Args:
-        model (nn.Module): Trained autoencoder model.
-        dataset (Dataset): Dataset from which to extract embeddings.
-        device (torch.device): Device to run the model on.
-        n_points (int, optional): If provided, randomly sample n_points 
-                                  from the dataset.
-        
-    Returns:
-        embeddings (np.ndarray): Array of shape (N, latent_dim) with the 
-                                 latent embeddings.
-        labels (list): List of labels (color & shape) for each image.
     """
     model.eval()
     encoder = model.encoder
@@ -54,45 +45,37 @@ def extract_embeddings(model, dataset, device, n_points=None):
 def plot_embeddings_pca(embeddings, labels, label_idx=0, title="Embeddings (PCA)"):
     """
     Use PCA to reduce the dimension of embeddings to 2D, and plot them.
-    
-    Args:
-        embeddings (np.ndarray): Shape (N, latent_dim)
-        labels (list): List of label tuples; label_idx indicates which label to use for coloring.
-                        label_idx=0 correspond to color, label_idx=1 to shape.
-        title (str): Plot title.
     """
     pca = PCA(n_components=2)
     embeddings_2d = pca.fit_transform(embeddings)
 
     label_values = np.array([lb[label_idx] for lb in labels])
+    num_classes = int(label_values.max() + 1)
 
-    colors = ["tab:purple", "tab:green", "tab:orange"]
-    markers = ["o", "^", "s"]
-    class_names = ["circle", "triangle", "square"]
+    cmap = plt.colormaps.get_cmap("tab10")
+    colors = [cmap(i) for i in range(num_classes)]
+    markers = ["o", "^", "s", "P", "X", "D", "v", "*"]
     
     plt.figure(figsize=(8,6))
-    for cls in [0, 1, 2]:
+    for cls in range(num_classes):
         mask = label_values == cls
         plt.scatter(
             embeddings_2d[mask, 0], embeddings_2d[mask, 1],
-            c=colors[cls], marker=markers[cls], label=class_names[cls],
-            s=35, alpha=0.8, edgecolors="k", linewidths=0.2
+            color=colors[cls], marker=markers[cls % len(markers)], 
+            label=f"class {cls}", s=35, alpha=0.8, 
+            edgecolors="k", linewidths=0.2
         )
 
     plt.title(title)
-    plt.tight_layout(); plt.show()
+    plt.legend(loc="best", fontsize=8, markerscale=0.8)
+    plt.tight_layout(); 
+    plt.show()
 
 
 def nearest_neighbors_visualization(model, dataset, device, n_neighbors=5):
     """
     For a randomly selected query image, find its nearest neighbors in the latent space 
     and visualize them.
-    
-    Args:
-        model (nn.Module): Trained autoencoder.
-        dataset (Dataset): The dataset from which to sample images.
-        device (torch.device): Device to run the model.
-        n_neighbors (int): Number of neighbors to display.
     """
     model.eval()
     encoder = model.encoder
@@ -130,6 +113,7 @@ def nearest_neighbors_visualization(model, dataset, device, n_neighbors=5):
         plt.axis("off")
     plt.show()
 
+
 def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print("Analyzing on device:", device)
@@ -146,7 +130,7 @@ def main():
     print("Loaded model from", autoencoder_model)
 
     # Embeddings and PCA visualization
-    n_points = 3000
+    n_points = 1000
     embeddings, labels = extract_embeddings(model, dataset, device, n_points=n_points)
     labels = np.array(labels)
     print(np.bincount(labels[:,1].astype(int)))
@@ -158,19 +142,19 @@ def main():
     nearest_neighbors_visualization(model, dataset, device, n_neighbors=5)
 
     # 1-NN Classification on embeddings
-    all_embeddings, all_labels = extract_embeddings(model, dataset, device, n_points=len(dataset) // 100)
+    all_embeddings, all_labels = extract_embeddings(model, dataset, device, n_points=3000)
     all_labels = np.array(all_labels)
-    print("Embeddings shape:", all_embeddings.shape)
-    print("Labels shape:", all_labels.shape)
+
+    # shuffle 
+    perm = np.random.permutation(len(all_embeddings))
+    all_embeddings = all_embeddings[perm]
+    all_labels = all_labels[perm]
 
     # train and test split, 80% train, 20% test
     split_idx = int(0.8 * len(all_embeddings))
     X_train, X_test = all_embeddings[:split_idx], all_embeddings[split_idx:]
     y_train_color, y_test_color = all_labels[:split_idx, 0], all_labels[split_idx:, 0]
     y_train_shape, y_test_shape = all_labels[:split_idx, 1], all_labels[split_idx:, 1]
-
-    print("y_test_color shape:", y_test_color.shape)
-    print("y_test_color type:", type(y_test_color))
 
     # train simple 1-NN classifier from scikit-learn
     from sklearn.neighbors import KNeighborsClassifier

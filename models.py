@@ -72,40 +72,42 @@ class ConvEncoder(nn.Module):
     """
 
     def __init__(self, latent_dim=128):
-        super().__init__() #call super class
-        self.encoding_stack = nn.Sequential(
-            nn.Conv2d( in_channels=3, out_channels=32, kernel_size=4, stride=2, padding=1, dilation=1, groups=1, bias=True, padding_mode='zeros', dtype=None), # 32, 32
-            nn.ReLU(),
+        super().__init__() 
 
-            nn.Conv2d( in_channels=32, out_channels=64, kernel_size=4, stride=2, padding=1, dilation=1, groups=1, bias=True, padding_mode='zeros', dtype=None),# 16, 16 
-            nn.ReLU(), 
+        self.convs = nn.Sequential(
+            # 32x32 -> 16x16
+            nn.Conv2d(3, 32, kernel_size=4, stride=2, padding=1),
+            nn.ReLU(inplace=True),
 
-            nn.Conv2d( in_channels=64, out_channels=128, kernel_size=4, stride=2, padding=1, dilation=1, groups=1, bias=True, padding_mode='zeros', dtype=None),# 8, 8 
-            nn.ReLU(),
+            # 16x16 -> 8x8
+            nn.Conv2d(32, 64, kernel_size=4, stride=2, padding=1),
+            nn.ReLU(inplace=True),
 
-            nn.Conv2d( in_channels=128, out_channels=256, kernel_size=4, stride=2, padding=1, dilation=1, groups=1, bias=True, padding_mode='zeros', dtype=None),# 4, 4 
-            nn.ReLU(), 
+            # 8x8 -> 4x4
+            nn.Conv2d(64, 128, kernel_size=4, stride=2, padding=1),
+            nn.ReLU(inplace=True),
 
-            nn.Conv2d( in_channels=256, out_channels=256, kernel_size=3, stride=1, padding=1, dilation=1, groups=1, bias=True, padding_mode='zeros', dtype=None),# 2, 2
-            nn.ReLU(),
+            # 4x4 -> 2x2
+            nn.Conv2d(128, 256, kernel_size=4, stride=2, padding=1),
+            nn.ReLU(inplace=True),
 
-            nn.Conv2d( in_channels=256, out_channels=256, kernel_size=3, stride=1, padding=1, dilation=1, groups=1, bias=True, padding_mode='zeros', dtype=None),# 2, 2
-            nn.ReLU(),
+            # Refine
+            nn.Conv2d(256, 256, kernel_size=3, stride=1, padding=1),
+            nn.ReLU(inplace=True),
 
-            nn.Flatten(1),
-
-            nn.LazyLinear(128)
+            # Refine
+            nn.Conv2d(256, 256, kernel_size=3, stride=1, padding=1),
+            nn.ReLU(inplace=True),
         )
 
-    def forward(self, x):
-        """
-        Args:
-            x (Tensor): shape (batch_size, 3, 32, 32)
-        Returns:
-            Tensor: shape (batch_size, latent_dim) (e.g. 128)
-        """
-        representation = self.encoding_stack(x)
-        return representation
+        self.flatten = nn.Flatten(start_dim=1)
+        self.fc = nn.Linear(256 * 2 * 2, latent_dim)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        x = self.convs(x)
+        x = self.flatten(x)
+        z  = self.fc(x)
+        return z
 
 class ConvDecoder(nn.Module):
     """
