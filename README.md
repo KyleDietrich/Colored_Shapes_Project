@@ -19,7 +19,7 @@ colored_shapes_project/
 
   ├── examples.py
   
-  ├── loss_functions_.py
+  ├── loss_functions.py
   
   ├── training.py
 
@@ -49,36 +49,42 @@ probably explain what each does here
 	pip install scikit-learn
 
 # Usage
-All commands assume you are at the project root and has depedencies installed
+__All commands assume you are at the project root and have all depedencies installed__
 
 
-Preview synthetic dataset
+**Preview synthetic dataset:**
 
-python examples.py
-
-
-Train the 128-dim convolutional auto-encoder
-
-python autoencoder_experiment.py
+	python examples.py
 
 
-Train the contrastive models (color-sensitive & shape-sensitive)
 
-python constrative_experiment.py
+**Train the 128-dim convolutional auto-encoder:**
 
-
-analyze & visualize auto-encoder embeddings
-
-python analyze_autoencoder_embeddings.py
+	python autoencoder_experiment.py
 
 
-Visualize 2-D contrastive models
-python visualize_embeddings.py
-	Be sure to change the model under CONFIG in the file
 
-Re-running with CPU only:
-	Set the env-var before any script
- 	"set CUDA_VISIBLE_DEVICES="
+**Train the contrastive models (color-sensitive & shape-sensitive):**
+
+	python constrative_experiment.py
+
+
+
+**Analyze & visualize auto-encoder embeddings:**
+
+	python analyze_autoencoder_embeddings.py
+
+
+
+**Visualize 2-D contrastive models (Be sure to change the model under CONFIG in the file):**
+
+	python visualize_embeddings.py
+	
+
+
+**Re-running with CPU only (Set the env-var before any script):**
+
+ 	set CUDA_VISIBLE_DEVICES=
  
 
 # References
