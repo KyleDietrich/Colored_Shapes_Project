@@ -20,7 +20,7 @@ COLOR_CLASSES = [
 ]
 
 SHAPE_CLASSES = ["circle", "triangle", "square"]
-IMAGE_SIZE = 32
+IMAGE_SIZE = 64
 if torch.accelerator.is_available():
     our_device = torch.accelerator.current_accelerator().type 
 else:
